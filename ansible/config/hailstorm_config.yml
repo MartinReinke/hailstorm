@@ -24,6 +24,14 @@ cloudforms_ova_appliance: cfme-rhevm-5.6.0.13-1.x86_64.rhevm.ova
 #cloudforms_ova_appliance: cfme-rhevm-5.5.3.4-1.x86_64.rhevm.ova
 #cloudforms_ova_appliance: manageiq-ovirt-devel.ova
 
+osp_kvm_images:
+  - image: rhel-guest-image-7.2-20160302.0.x86_64.qcow2
+    name: RHEL7
+  - image: cirros-0.3.4-x86_64-disk.img
+    name: CirrOS
+  - image: windows_server_2012_r2_standard_eval_kvm_20151021.qcow2.gz
+    name: Windows Server 2012
+
 # RED HAT SUBSCRIPTION POOLS
 #rhel6_subscription_poolid: 8a85f9814f220b7c014f221083430791
 #rhel7_subscription_poolid: 8a85f9814f220b7c014f221083430791
@@ -68,7 +76,9 @@ ose3_repos:
 ose3_additional_packages: docker
 #   - rhel-7-server-ose-3.1-rpms
 # ose3_additional_packages: docker-1.8.2
-tdagent_rpm: https://packages.treasuredata.com/2/redhat/7/x86_64/td-agent-2.2.0-0.x86_64.rpm
+tdagent_rpm:
+  "7": https://packages.treasuredata.com/2/redhat/7/x86_64/td-agent-2.2.0-0.x86_64.rpm
+  "6": https://packages.treasuredata.com/2/redhat/6/x86_64/td-agent-2.2.0-0.x86_64.rpm
 
 
 timezone: Europe/Berlin
@@ -90,44 +100,68 @@ ipa_user:
   - username: rhev-bind-user
     first: rhev
     last: binduser
+    password: "{{ root_password }}"
   - username: ose-bind-user
     first: ose
     last: binduser
     password: "{{ root_password }}"
-  - username: glance
-    first: OpenStack
-    last: Glance
+  - username: osp-bind-user
+    first: osp
+    last: binduser
     password: "{{ root_password }}"
-  - username: cinder
-    first: OpenStack
-    last: Glance
-    password: "{{ root_password }}"
-  - username: heat
-    first: OpenStack
-    last: Heat
-    password: "{{ root_password }}"
-  - username: neutron
-    first: OpenStack
-    last: Neutron
-    password: "{{ root_password }}"
-  - username: nova
-    first: OpenStack
-    last: Nova
-    password: "{{ root_password }}"
-  - username: swift
-    first: OpenStack
-    last: Swift
+  - username: cfme-bind-user
+    first: cfme
+    last: binduser
     password: "{{ root_password }}"
 
+
 ipa_group:
-  - groupname: service-accounts
+  - groupname: demo-admin
     members:
+      - admin
+    pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=1
+  - groupname: demo-all
+    members:
+      - admin
+      - developer
+      - consumer
+      - approver
+      - cfme-bind-user
       - rhev-bind-user
       - ose-bind-user
-      - glance
-      - cinder
-      - heat
-      - neutron
-      - nova
-      - swift
+      - osp-bind-user
+    pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=6
+  - groupname: demo-consumer
+    members:
+      - admin
+      - developer
+      - consumer
+      - approver
+    pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=2
+  - groupname: demo-approver
+    members:
+      - approver
+    pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=3
+  - groupname: demo-developer
+    members:
+      - developer
+    pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=4
+  - groupname: service-accounts
+    members:
+      - cfme-bind-user
+      - rhev-bind-user
+      - ose-bind-user
+      - osp-bind-user
     pwpolicy: --maxlife=20000 --minlife=0 --history=0 --maxfail=0 --priority=0
+
+osp_domain_name: hailstorm
+osp_projects:
+  - demo
+  - demo1
+osp_admin_user:
+  - cfme-bind-user
+  - admin
+osp_member_user:
+  - consumer
+  - developer
+  - approver

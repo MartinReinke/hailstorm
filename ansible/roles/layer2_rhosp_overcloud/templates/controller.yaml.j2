@@ -72,6 +72,10 @@ parameters:
     default: ''
     description: IP address/subnet on the management network
     type: string
+  ManagementInterfaceDefaultRoute:
+    default: ''
+    description: default route for the external network
+    type: string
 
 resources:
   OsNetConfigImpl:
@@ -94,11 +98,12 @@ resources:
                       - - {get_param: ControlPlaneIp}
                         - {get_param: ControlPlaneSubnetCidr}
               routes:
-                -
-                  ip_netmask: 0.0.0.0/0
-                  next_hop: {get_param: ControlPlaneDefaultRoute}
-                  # Optionally have this interface as default route
-                  default: true
+              # HAILSTORM: don't set the default route on the provisioning network, we need it on the service nw
+              #  -
+              #    ip_netmask: 0.0.0.0/0
+              #    next_hop: {get_param: ControlPlaneDefaultRoute}
+              #    # Optionally have this interface as default route
+              #    default: true
                 -
                   ip_netmask: 169.254.169.254/32
                   next_hop: {get_param: EC2MetadataIp}
@@ -136,18 +141,39 @@ resources:
                   -
                     ip_netmask: {get_param: TenantIpSubnet}
             -
+              # HAILSTORM: this one is the guests aka public aka external network
               type: ovs_bridge
-              # This will default to br-ex, anything else requires specific
-              # brige mapping entries for it to be used.
-              name: {get_input: bridge_name}
+              name: br-guests
               use_dhcp: false
+
+              addresses:
+                -
+                  ip_netmask: {get_param: ManagementIpSubnet }
+# don't set a default route on the guests network - that will need to be done in the OSP router
+#              routes:
+#                -
+#                  ip_netmask: 0.0.0.0/0
+#                  next_hop: {get_param: ManagementInterfaceDefaultRoute }
+              members:
+                -
+                  type: interface
+                  name: nic5
+                  # force the MAC address of the bridge to this interface
+                  primary: true
+            -
+              # HAILSTORM: this one is the services network
+              type: ovs_bridge
+              name: br-services
+              use_dhcp: false
+              defroute: yes
               addresses:
                 -
                   ip_netmask: {get_param: ExternalIpSubnet}
-                  routes:
-                    -
-                      ip_netmask: 0.0.0.0/0
-                      next_hop: {get_param: ExternalInterfaceDefaultRoute}
+              routes:
+                -
+                  ip_netmask: 0.0.0.0/0
+                  next_hop: {get_param: ExternalInterfaceDefaultRoute }
+                  default: yes
               members:
                 -
                   type: interface
@@ -155,23 +181,15 @@ resources:
                   # force the MAC address of the bridge to this interface
                   primary: true
             -
-              # HAILSTORM: this one is for the guests network
-              type: ovs_bridge
-              name: br-guests
-              use_dhcp: false
-              addresses:
-                -
-                  ip_netmask: {{ infrastructure_network_guests.host_prefix }}
-                  routes:
-                    -
-                      ip_netmask: 0.0.0.0/0
-                      next_hop: {{ infrastructure_network_guests.host_prefix | ipaddr('address') }}
-              members:
-                -
-                  type: interface
-                  name: nic5
-                  # force the MAC address of the bridge to this interface
-                  primary: true
+              # HAILSTORM: this one is the admin network
+              type: interface
+              name: nic6
+              use_dhcp: true
+            -
+              # HAILSTORM: this one is the storage network
+              type: interface
+              name: nic3
+              use_dhcp: true
 
 outputs:
   OS::stack_id:
