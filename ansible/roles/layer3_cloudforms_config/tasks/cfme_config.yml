@@ -5,13 +5,21 @@
   register: settings
 
 - name: apply settings.sql
+# when using become, it fails with the error message /opt/rh/rh-postgresql94/root/usr/bin/psql: error while loading shared libraries: libpq.so.rh-postgresql94-5: cannot open shared object file: No such file or directory
   shell: sudo -i -u postgres psql -f /tmp/settings.sql vmdb_production
-#  notify: restart evmserverd
+  # shell: psql -f /tmp/settings.sql vmdb_production
   # become: yes
   # become_user: postgres
-  # when using become, it fails with the error message /opt/rh/rh-postgresql94/root/usr/bin/psql: error while loading shared libraries: libpq.so.rh-postgresql94-5: cannot open shared object file: No such file or directory
+  # become_method: sudo
   when: settings|changed
 
 - name: make sure evmserverd is restarted
   service: name=evmserverd state=restarted enabled=yes
   when: settings|changed
+
+- name: wait for cfme web ui to become available again
+  wait_for: host={{ hostvars['cloudforms'].vm_nics[0].ip }} port=443 timeout=600
+  delegate_to: "{{ infrastructure_delegate_host_used_to_test_if_layer2_host_is_available }}"
+
+- name: create export script
+  template: src=export.sh.j2 dest=~/export.sh owner=root group=root mode=0755

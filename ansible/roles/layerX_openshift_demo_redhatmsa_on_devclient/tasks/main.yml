@@ -1,0 +1,13 @@
+- block:
+    - include: create_redhatmsa_project.yml
+  when: mode == "create"
+
+- block:
+    - name: remove redhat-msa project
+      shell: oc delete project {{ redhat_msa_project }}
+    - name: remove workdirs
+      file: state=absent path="{{ workdir }}/{{ item.name }}"
+      with_items: "{{ msa_projects }}"
+  become: true
+  become_user: developer
+  when: mode == "destroy"

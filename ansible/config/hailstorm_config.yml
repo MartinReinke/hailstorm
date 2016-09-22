@@ -20,7 +20,8 @@ rhosp_images:
   - overcloud-full-8.0-20160415.1.tar
 ####END RHOSP
 satellite_manifestfile: manifest.zip
-cloudforms_ova_appliance: cfme-rhevm-5.6.0.13-1.x86_64.rhevm.ova
+cloudforms_ova_appliance: cfme-rhevm-5.6.1.2-1.x86_64.rhevm.ova
+#cloudforms_ova_appliance: cfme-rhevm-5.6.0.13-1.x86_64.rhevm.ova
 #cloudforms_ova_appliance: cfme-rhevm-5.5.3.4-1.x86_64.rhevm.ova
 #cloudforms_ova_appliance: manageiq-ovirt-devel.ova
 
@@ -32,6 +33,10 @@ osp_kvm_images:
   - image: windows_server_2012_r2_standard_eval_kvm_20151021.qcow2.gz
     name: Windows Server 2012
 
+rhev_templates:
+  - image: rhel-guest-image-7.2-20160302.0.x86_64.qcow2
+    name: "RHEL7"
+
 # RED HAT SUBSCRIPTION POOLS
 #rhel6_subscription_poolid: 8a85f9814f220b7c014f221083430791
 #rhel7_subscription_poolid: 8a85f9814f220b7c014f221083430791
@@ -41,24 +46,29 @@ rhel_subscription_pool_regex: "^(Employee SKU|Red Hat Enterprise Linux Server.*U
 rhev_subscription_pool_regex: "^(Employee SKU|Red Hat Enterprise Virtualization.*|Red Hat Enterprise Linux Server.*Unlimited guests.*)$"
 rhosp_subscription_pool_regex: "^(Employee SKU|Red Hat Enterprise Linux OpenStack Platform.*)$"
 ose_subscription_pool_regex: "^(Employee SKU|OpenShift Enterprise.*)$"
+cloudforms_subscription_pool_regex: "^(CloudForms Employee Subscription|Red Hat Enterprise Linux OpenStack Platform.*)$"
 
 # REPOSITORIES
-# rhosp_repos:
+# rhosp_undercloud_repos:
 #   - rhel-7-server-rpms
 #   - rhel-7-server-optional-rpms
 #   - rhel-7-server-extras-rpms
 #   - rhel-7-server-openstack-7.0-rpms
 #   - rhel-7-server-openstack-7.0-director-rpms
-rhosp_repos:
+rhosp_undercloud_repos:
   - rhel-7-server-rpms
   - rhel-7-server-optional-rpms
   - rhel-7-server-extras-rpms
   - rhel-7-server-openstack-9-rpms
   - rhel-7-server-openstack-9-director-rpms
+rhosp_overcloud_repos:
+  - rhel-7-server-rpms
+  - rhel-7-server-optional-rpms
+  - rhel-7-server-openstack-9-optools-rpms
 satellite_repos:
   - rhel-7-server-rpms
   - rhel-server-rhscl-7-rpms
-  - rhel-7-server-satellite-6.1-rpms
+  - rhel-7-server-satellite-{{ satellite_version }}-rpms
 rhevm_repos:
   - rhel-6-server-rpms
   - rhel-6-server-supplementary-rpms
@@ -69,6 +79,10 @@ rhevh_repos:
   - rhel-7-server-rhev-mgmt-agent-rpms
 ipa_repos:
   - rhel-7-server-rpms
+cloudforms_repos:
+  - rhel-7-server-rpms
+  - rhel-server-rhscl-7-rpms
+  - cf-me-5.6-for-rhel-7-rpms
 ose3_repos:
   - rhel-7-server-rpms
   - rhel-7-server-extras-rpms

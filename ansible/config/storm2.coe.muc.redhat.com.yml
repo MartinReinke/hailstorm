@@ -2,6 +2,7 @@ layer1_ansible_host: storm2.coe.muc.redhat.com
 hailstorm_dns_domain: hailstorm2.coe.muc.redhat.com
 
 disable_registration_against_satellite: false
+satellite_version: 6.1
 
 # if this attribute is present, the binaries (except for the SSH keys)
 # will be copied from the layer1 host instead of the control host
@@ -44,6 +45,10 @@ layer2_ose3master_cpu: 4
 layer2_ose3lb_mem: 2048
 layer2_ose3lb_cpu: 2
 
+layer2_devclient_mem: 2048
+layer2_devclient_cpu: 2
+
+
 external_network_config:
   services_network_dnat:
     layer1_dev: em1
@@ -60,6 +65,27 @@ external_network_config:
           - from_port: 22
             to_port: 22
             proto: tcp
+#The Katello agent to communicate with the Capsule's Qpid dispatch router
+          - from_port: 5647
+            to_port: 5647
+            proto: tcp
+#HTTPS	Anaconda to download kickstart templates to hosts, and for downloading iPXE firmware
+          - from_port: 8000
+            to_port: 8000
+            proto: tcp
+#HTTPS	Puppet agent to Puppet master connections
+          - from_port: 8140
+            to_port: 8140
+            proto: tcp
+#HTTPS	Subscription Management Services connection to the reverse proxy for the certificate-based API
+          - from_port: 8443
+            to_port: 8443
+            proto: tcp
+#HTTPS	Sending generated SCAP reports to the proxy in the Capsule for spooling
+          - from_port: 9090
+            to_port: 9090
+            proto: tcp
+
       - expose_machine: ipa
         on_host_prefix: 10.32.105.21/32
         ports:
@@ -108,6 +134,9 @@ external_network_config:
           - from_port: 443
             to_port: 443
             proto: tcp
+          - from_port: 6100
+            to_port: 6100
+            proto: tcp
       - expose_machine: cloudforms
         on_host_prefix: 10.32.105.24/32
         ports:
@@ -125,6 +154,9 @@ external_network_config:
         ports:
           - from_port: 22
             to_port: 22
+            proto: tcp
+          - from_port: 80
+            to_port: 80
             proto: tcp
           - from_port: 443
             to_port: 8443

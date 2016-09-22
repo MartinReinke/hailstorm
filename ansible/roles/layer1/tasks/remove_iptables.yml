@@ -1,0 +1,10 @@
+- name: remove sysctl entries controlling IPTables for bridge devices
+  lineinfile: dest=/etc/sysctl.conf regexp="{{ item }}" state=absent
+  register: kernel_params
+  with_items:
+    - "net.bridge.bridge-nf-call-arptables.*"
+    - "net.bridge.bridge-nf-call-ip6tables.*"
+    - "net.bridge.bridge-nf-call-iptables.*"
+- name: reload kernel params
+  command: sysctl -p /etc/sysctl.conf
+  when: kernel_params|changed
